@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { 
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  color: #e2e8f0;
+  min-height: 100vh;
+  padding: 20px;
+}
+
+.container { 
+  width: 100%; 
+  max-width: 1200px; 
+  margin: 0 auto;
+}
+
+.header { 
+  text-align: center; 
+  margin-bottom: 2rem;
+}
+
+.header h1 { 
+  font-size: 48px; 
+  font-weight: 700; 
+  margin-bottom: 8px; 
+  background: linear-gradient(135deg, #60a5fa, #a78bfa);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.header p { 
+  font-size: 16px; 
+  color: #94a3b8;
+}
+
+.game-section {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-bottom: 2rem;
+}
+
+.game-area {
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 12px;
+  padding: 1.5rem;
+  transition: all 0.2s;
+}
+
+.game-area.active {
+  border-color: rgba(148, 163, 184, 0.6);
+  box-shadow: 0 0 20px rgba(96, 165, 250, 0.3);
+}
+
+.game-area.active.player2 {
+  box-shadow: 0 0 20px rgba(244, 114, 182, 0.3);
+}
+
+.player-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #94a3b8;
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.player1 { color: #60a5fa; }
+.player2 { color: #f472b6; }
+
+canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  max-height: 300px;
+}
+
+.game-info {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 1rem;
+}
+
+.stat-card {
+  background: rgba(30, 41, 59, 0.8);
+  border: 1px solid rgba(148, 163, 184, 0.1);
+  border-radius: 8px;
+  padding: 12px;
+  text-align: center;
+}
+
+.stat-label {
+  font-size: 12px;
+  color: #64748b;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.stat-value {
+  font-size: 24px;
+  font-weight: 700;
+  background: linear-gradient(135deg, #60a5fa, #a78bfa);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.coin-stat {
+  background: rgba(251, 191, 36, 0.1);
+  border: 1px solid rgba(251, 191, 36, 0.3);
+}
+
+.coin-value {
+  color: #fbbf24;
+}
+
+.controls {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+button {
+  background: rgba(96, 165, 250, 0.1);
+  border: 1px solid rgba(96, 165, 250, 0.3);
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-size: 14px;
+  cursor: pointer;
+  color: #60a5fa;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+button:hover:not(:disabled) {
+  background: rgba(96, 165, 250, 0.2);
+  border-color: rgba(96, 165, 250, 0.6);
+  transform: translateY(-2px);
+}
+
+button:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.instructions {
+  background: rgba(30, 41, 59, 0.8);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.instructions h3 {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: #e2e8f0;
+}
+
+.instructions p {
+  font-size: 14px;
+  line-height: 1.6;
+  color: #cbd5e1;
+  margin-bottom: 8px;
+}
+
+.key-highlight {
+  background: rgba(96, 165, 250, 0.2);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: 'Courier New', monospace;
+  font-weight: 600;
+  color: #60a5fa;
+}
+
+.leaderboard-section {
+  background: rgba(30, 41, 59, 0.8);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 12px;
+  padding: 1.5rem;
+}
+
+.leaderboard-section h3 {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: #e2e8f0;
+}
+
+.leaderboard {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.leaderboard-entry {
+  display: grid;
+  grid-template-columns: 40px 1fr 80px 100px;
+  align-items: center;
+  gap: 12px;
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid rgba(148, 163, 184, 0.1);
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 14px;
+}
+
+.rank {
+  font-weight: 700;
+  color: #a78bfa;
+  text-align: center;
+}
+
+.rank.gold { color: #fbbf24; }
+.rank.silver { color: #cbd5e1; }
+.rank.bronze { color: #d97706; }
+
+.entry-name {
+  color: #e2e8f0;
+  font-weight: 500;
+}
+
+.entry-coins {
+  text-align: right;
+  color: #fbbf24;
+  font-weight: 600;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 2rem;
+  color: #64748b;
+}
+
+.result-modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+}
+
+.result-modal.show {
+  display: flex;
+}
+
+.result-content {
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  border-radius: 16px;
+  padding: 2rem;
+  text-align: center;
+  max-width: 500px;
+}
+
+.result-title {
+  font-size: 32px;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  background: linear-gradient(135deg, #fbbf24, #f472b6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.result-text {
+  font-size: 16px;
+  color: #cbd5e1;
+  margin-bottom: 1.5rem;
+  line-height: 1.6;
+}
+
+.result-scores {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 1.5rem;
+}
+
+.result-score {
+  background: rgba(30, 41, 59, 0.8);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 12px;
+  padding: 1rem;
+}
+
+.result-score-label {
+  font-size: 12px;
+  color: #64748b;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+}
+
+.result-score-value {
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.result-coins {
+  font-size: 14px;
+  color: #fbbf24;
+  font-weight: 600;
+}
+
+.result-buttons {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.result-buttons button {
+  flex: 1;
+  padding: 12px 24px;
+  font-size: 16px;
+}
+
+@media (max-width: 768px) {
+  .game-section {
+    grid-template-columns: 1fr;
+  }
+  
+  .header h1 {
+    font-size: 36px;
+  }
+  
+  .leaderboard-entry {
+    grid-template-columns: 30px 1fr 60px;
+  }
+  
+  .entry-coins {
+    grid-column: 3;
+  }
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="header">
+    <h1>⚡ Nimble</h1>
+    <p>2-Player Racing Game</p>
+  </div>
+
+  <div class="instructions">
+    <h3>How to Play</h3>
+    <p><strong>2-Player Mode:</strong> Player 1 uses <span class="key-highlight">A</span> and <span class="key-highlight">D</span>, Player 2 uses <span class="key-highlight">← →</span> arrow keys</p>
+    <p><strong>Challenge Mode:</strong> Click <span class="key-highlight">Switch Role</span> during the game to control both players with a single keyboard. The highlighted player is the one you're currently controlling. Switch between them to keep both alive!</p>
+    <p>Avoid the red blocks and catch the gold squares for bonus points. Whoever has the most coins when the game ends wins!</p>
+  </div>
+
+  <div class="game-section">
+    <div class="game-area active" id="gameArea1">
+      <div class="player-label player1">🔵 Player 1</div>
+      <canvas id="gameCanvas1" width="400" height="300"></canvas>
+      <div class="game-info">
+        <div class="stat-card">
+          <div class="stat-label">Score</div>
+          <div class="stat-value" id="score1">0</div>
+        </div>
+        <div class="stat-card coin-stat">
+          <div class="stat-label">Coins</div>
+          <div class="stat-value coin-value" id="coins1">0</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="game-area" id="gameArea2">
+      <div class="player-label player2">🔴 Player 2</div>
+      <canvas id="gameCanvas2" width="400" height="300"></canvas>
+      <div class="game-info">
+        <div class="stat-card">
+          <div class="stat-label">Score</div>
+          <div class="stat-value" id="score2">0</div>
+        </div>
+        <div class="stat-card coin-stat">
+          <div class="stat-label">Coins</div>
+          <div class="stat-value coin-value" id="coins2">0</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <button onclick="startGame()" id="startBtn">Start Game</button>
+    <button onclick="togglePause()" id="pauseBtn" disabled>Pause</button>
+    <button onclick="switchRole()" id="switchBtn" disabled>Switch Role</button>
+  </div>
+
+  <div class="leaderboard-section">
+    <h3>🏆 Leaderboard</h3>
+    <div class="leaderboard" id="leaderboard">
+      <div class="empty-state">No games yet. Play to see results!</div>
+    </div>
+  </div>
+</div>
+
+<div class="result-modal" id="resultModal">
+  <div class="result-content">
+    <div class="result-title" id="resultTitle">Player 1 Wins!</div>
+    <div class="result-text" id="resultText">Congratulations on the victory!</div>
+    <div class="result-scores">
+      <div class="result-score">
+        <div class="result-score-label">Player 1</div>
+        <div class="result-score-value" id="resultScore1">0</div>
+        <div class="result-coins" id="resultCoins1">0 coins</div>
+      </div>
+      <div class="result-score">
+        <div class="result-score-label">Player 2</div>
+        <div class="result-score-value" id="resultScore2">0</div>
+        <div class="result-coins" id="resultCoins2">0 coins</div>
+      </div>
+    </div>
+    <div class="result-buttons">
+      <button onclick="playAgain()">Play Again</button>
+      <button onclick="closeResult()">View Leaderboard</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const canvas1 = document.getElementById('gameCanvas1');
+const canvas2 = document.getElementById('gameCanvas2');
+const ctx1 = canvas1.getContext('2d');
+const ctx2 = canvas2.getContext('2d');
+
+const scoreDisplay1 = document.getElementById('score1');
+const scoreDisplay2 = document.getElementById('score2');
+const coinsDisplay1 = document.getElementById('coins1');
+const coinsDisplay2 = document.getElementById('coins2');
+const startBtn = document.getElementById('startBtn');
+const pauseBtn = document.getElementById('pauseBtn');
+const switchBtn = document.getElementById('switchBtn');
+const resultModal = document.getElementById('resultModal');
+const leaderboardEl = document.getElementById('leaderboard');
+
+let gameRunning = false;
+let gamePaused = false;
+let score1 = 0;
+let score2 = 0;
+let gameSpeed = 2;
+let activePlayer = 0; // 0 for Player 1, 1 for Player 2
+let leaderboard = JSON.parse(localStorage.getItem('nimble-leaderboard')) || [];
+
+const players = [
+  {
+    x: canvas1.width / 2 - 20,
+    y: canvas1.height - 40,
+    width: 40,
+    height: 40,
+    speed: 6,
+    keys: {},
+    color: '#60a5fa'
+  },
+  {
+    x: canvas2.width / 2 - 20,
+    y: canvas2.height - 40,
+    width: 40,
+    height: 40,
+    speed: 6,
+    keys: {},
+    color: '#f472b6'
+  }
+];
+
+let obstacles1 = [];
+let obstacles2 = [];
+let particles1 = [];
+let particles2 = [];
+
+const colors = {
+  obstacle: '#ef4444',
+  bonus: '#fbbf24',
+  bg: 'rgba(15, 23, 42, 0.5)'
+};
+
+function calculateCoins(score) {
+  return Math.round(score / 50) * 50;
+}
+
+function startGame() {
+  gameRunning = true;
+  gamePaused = false;
+  score1 = 0;
+  score2 = 0;
+  gameSpeed = 2;
+  obstacles1 = [];
+  obstacles2 = [];
+  particles1 = [];
+  particles2 = [];
+  activePlayer = 0;
+  
+  players[0].x = canvas1.width / 2 - 20;
+  players[1].x = canvas2.width / 2 - 20;
+  
+  scoreDisplay1.textContent = '0';
+  scoreDisplay2.textContent = '0';
+  coinsDisplay1.textContent = '0';
+  coinsDisplay2.textContent = '0';
+  
+  startBtn.disabled = true;
+  pauseBtn.disabled = false;
+  switchBtn.disabled = false;
+  updateActivePlayerUI();
+  update();
+}
+
+function togglePause() {
+  gamePaused = !gamePaused;
+  pauseBtn.textContent = gamePaused ? 'Resume' : 'Pause';
+  if (!gamePaused) update();
+}
+
+function switchRole() {
+  activePlayer = activePlayer === 0 ? 1 : 0;
+  updateActivePlayerUI();
+}
+
+function updateActivePlayerUI() {
+  const gameArea1 = document.getElementById('gameArea1');
+  const gameArea2 = document.getElementById('gameArea2');
+  
+  if (activePlayer === 0) {
+    gameArea1.classList.add('active');
+    gameArea2.classList.remove('active');
+  } else {
+    gameArea1.classList.remove('active');
+    gameArea2.classList.add('active', 'player2');
+  }
+}
+
+function endGame() {
+  gameRunning = false;
+  gamePaused = false;
+  startBtn.disabled = false;
+  pauseBtn.disabled = true;
+  pauseBtn.textContent = 'Pause';
+  switchBtn.disabled = true;
+  
+  const coins1 = calculateCoins(score1);
+  const coins2 = calculateCoins(score2);
+  
+  let winner = 'Tie!';
+  if (coins1 > coins2) winner = 'Player 1 Wins!';
+  if (coins2 > coins1) winner = 'Player 2 Wins!';
+  
+  // Add to leaderboard
+  const entry = {
+    winner: winner,
+    score1: score1,
+    score2: score2,
+    coins1: coins1,
+    coins2: coins2,
+    date: new Date().toLocaleString()
+  };
+  
+  leaderboard.unshift(entry);
+  if (leaderboard.length > 10) leaderboard.pop();
+  localStorage.setItem('nimble-leaderboard', JSON.stringify(leaderboard));
+  
+  // Show result modal
+  document.getElementById('resultTitle').textContent = winner;
+  document.getElementById('resultScore1').textContent = score1;
+  document.getElementById('resultScore2').textContent = score2;
+  document.getElementById('resultCoins1').textContent = coins1 + ' coins';
+  document.getElementById('resultCoins2').textContent = coins2 + ' coins';
+  
+  const resultText = coins1 > coins2 ? 'Player 1 takes the victory!' :
+                     coins2 > coins1 ? 'Player 2 takes the victory!' :
+                     "It's a perfect tie!";
+  document.getElementById('resultText').textContent = resultText;
+  
+  resultModal.classList.add('show');
+  updateLeaderboard();
+}
+
+function playAgain() {
+  resultModal.classList.remove('show');
+  startGame();
+}
+
+function closeResult() {
+  resultModal.classList.remove('show');
+}
+
+function updateLeaderboard() {
+  if (leaderboard.length === 0) {
+    leaderboardEl.innerHTML = '<div class="empty-state">No games yet. Play to see results!</div>';
+    return;
+  }
+  
+  leaderboardEl.innerHTML = leaderboard.map((entry, i) => {
+    const rankClass = i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : '';
+    const maxCoins = Math.max(entry.coins1, entry.coins2);
+    const winner = entry.coins1 > entry.coins2 ? 'P1' : entry.coins2 > entry.coins1 ? 'P2' : 'Tie';
+    
+    return `
+      <div class="leaderboard-entry">
+        <div class="rank ${rankClass}">#${i + 1}</div>
+        <div class="entry-name">${winner} - ${entry.score1} vs ${entry.score2}</div>
+        <div class="entry-coins">${maxCoins} 🪙</div>
+      </div>
+    `;
+  }).join('');
+}
+
+document.addEventListener('keydown', (e) => {
+  const key = e.key.toLowerCase();
+  const activePlayerObj = players[activePlayer];
+  
+  // Both A/D and arrow keys work for the active player
+  if (['a', 'd', 'arrowleft', 'arrowright'].includes(key)) {
+    activePlayerObj.keys[key] = true;
+    e.preventDefault();
+  }
+});
+
+document.addEventListener('keyup', (e) => {
+  const key = e.key.toLowerCase();
+  const activePlayerObj = players[activePlayer];
+  
+  if (['a', 'd', 'arrowleft', 'arrowright'].includes(key)) {
+    activePlayerObj.keys[key] = false;
+  }
+});
+
+function updatePlayer(playerIdx, canvas, ctx, obstacles, particles) {
+  const player = players[playerIdx];
+  
+  // Clear canvas
+  ctx.fillStyle = colors.bg;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  
+  // Move player
+  if (playerIdx === 0) {
+    if (player.keys['a'] || player.keys['arrowleft']) {
+      player.x = Math.max(0, player.x - player.speed);
+    }
+    if (player.keys['d'] || player.keys['arrowright']) {
+      player.x = Math.min(canvas.width - player.width, player.x + player.speed);
+    }
+  } else {
+    if (player.keys['a'] || player.keys['arrowleft']) {
+      player.x = Math.max(0, player.x - player.speed);
+    }
+    if (player.keys['d'] || player.keys['arrowright']) {
+      player.x = Math.min(canvas.width - player.width, player.x + player.speed);
+    }
+  }
+  
+  // Draw player
+  ctx.fillStyle = player.color;
+  ctx.fillRect(player.x, player.y, player.width, player.height);
+  
+  // Spawn obstacles
+  if (Math.random() < 0.02 + gameSpeed * 0.003) {
+    const isBonus = Math.random() < 0.15;
+    obstacles.push({
+      x: Math.random() * (canvas.width - 25),
+      y: -25,
+      width: 25,
+      height: 25,
+      speed: 2 + gameSpeed * 0.3,
+      isBonus: isBonus
+    });
+  }
+  
+  // Update obstacles
+  for (let i = obstacles.length - 1; i >= 0; i--) {
+    const obs = obstacles[i];
+    obs.y += obs.speed;
+    
+    // Draw obstacle
+    ctx.fillStyle = obs.isBonus ? colors.bonus : colors.obstacle;
+    ctx.fillRect(obs.x, obs.y, obs.width, obs.height);
+    
+    // Check collision
+    if (
+      player.x < obs.x + obs.width &&
+      player.x + player.width > obs.x &&
+      player.y < obs.y + obs.height &&
+      player.y + player.height > obs.y
+    ) {
+      if (obs.isBonus) {
+        if (playerIdx === 0) {
+          score1 += 5;
+          scoreDisplay1.textContent = score1;
+          coinsDisplay1.textContent = calculateCoins(score1);
+        } else {
+          score2 += 5;
+          scoreDisplay2.textContent = score2;
+          coinsDisplay2.textContent = calculateCoins(score2);
+        }
+        createParticles(playerIdx, obs.x + obs.width / 2, obs.y + obs.height / 2, colors.bonus, particles);
+      } else {
+        endGame();
+        return;
+      }
+      obstacles.splice(i, 1);
+    } else if (obs.y > canvas.height) {
+      if (!obs.isBonus) {
+        if (playerIdx === 0) {
+          score1 += 1;
+          scoreDisplay1.textContent = score1;
+          coinsDisplay1.textContent = calculateCoins(score1);
+        } else {
+          score2 += 1;
+          scoreDisplay2.textContent = score2;
+          coinsDisplay2.textContent = calculateCoins(score2);
+        }
+      }
+      obstacles.splice(i, 1);
+    }
+  }
+  
+  // Update particles
+  for (let i = particles.length - 1; i >= 0; i--) {
+    const p = particles[i];
+    p.life--;
+    p.x += p.vx;
+    p.y += p.vy;
+    p.vy += 0.2;
+    
+    ctx.fillStyle = `rgba(255, 255, 255, ${p.life / 100})`;
+    ctx.fillRect(p.x, p.y, 4, 4);
+    
+    if (p.life <= 0) particles.splice(i, 1);
+  }
+}
+
+function createParticles(playerIdx, x, y, color, particles) {
+  for (let i = 0; i < 8; i++) {
+    const angle = (i / 8) * Math.PI * 2;
+    particles.push({
+      x: x,
+      y: y,
+      vx: Math.cos(angle) * 3,
+      vy: Math.sin(angle) * 3,
+      life: 100
+    });
+  }
+}
+
+function update() {
+  if (!gameRunning || gamePaused) return;
+  
+  updatePlayer(0, canvas1, ctx1, obstacles1, particles1);
+  updatePlayer(1, canvas2, ctx2, obstacles2, particles2);
+  
+  gameSpeed = 2 + Math.max(score1, score2) * 0.05;
+  requestAnimationFrame(update);
+}
+
+// Initialize leaderboard on page load
+updateLeaderboard();
+</script>
+
+</body>
+</html>
