@@ -161,6 +161,28 @@ button:disabled {
   cursor: not-allowed;
 }
 
+.music-toggle {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 100;
+  background: rgba(96, 165, 250, 0.2);
+  border: 1px solid rgba(96, 165, 250, 0.5);
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  padding: 0;
+  font-size: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.music-toggle:hover {
+  background: rgba(96, 165, 250, 0.3);
+}
+
 .instructions {
   background: rgba(30, 41, 59, 0.8);
   border: 1px solid rgba(148, 163, 184, 0.2);
@@ -356,10 +378,24 @@ button:disabled {
   .entry-coins {
     grid-column: 3;
   }
+  
+  .music-toggle {
+    top: 10px;
+    right: 10px;
+    width: 45px;
+    height: 45px;
+    font-size: 20px;
+  }
 }
 </style>
 </head>
 <body>
+
+<button class="music-toggle" id="musicToggle" onclick="toggleMusic()" title="Toggle Music">🔊</button>
+
+<audio id="bgMusic" loop>
+  <source src="Square%20Dodge.mp3" type="audio/mpeg">
+</audio>
 
 <div class="container">
   <div class="header">
@@ -448,6 +484,8 @@ const canvas1 = document.getElementById('gameCanvas1');
 const canvas2 = document.getElementById('gameCanvas2');
 const ctx1 = canvas1.getContext('2d');
 const ctx2 = canvas2.getContext('2d');
+const bgMusic = document.getElementById('bgMusic');
+const musicToggle = document.getElementById('musicToggle');
 
 const scoreDisplay1 = document.getElementById('score1');
 const scoreDisplay2 = document.getElementById('score2');
@@ -464,7 +502,8 @@ let gamePaused = false;
 let score1 = 0;
 let score2 = 0;
 let gameSpeed = 2;
-let activePlayer = 0; // 0 for Player 1, 1 for Player 2
+let activePlayer = 0;
+let musicPlaying = localStorage.getItem('nimble-music') === 'true';
 let leaderboard = JSON.parse(localStorage.getItem('nimble-leaderboard')) || [];
 
 const players = [
@@ -498,6 +537,30 @@ const colors = {
   bonus: '#fbbf24',
   bg: 'rgba(15, 23, 42, 0.5)'
 };
+
+function toggleMusic() {
+  musicPlaying = !musicPlaying;
+  localStorage.setItem('nimble-music', musicPlaying);
+  if (musicPlaying) {
+    bgMusic.play().catch(e => console.log('Music play failed:', e));
+    musicToggle.textContent = '🔊';
+  } else {
+    bgMusic.pause();
+    musicToggle.textContent = '🔇';
+  }
+}
+
+function initMusic() {
+  updateMusicToggle();
+  bgMusic.volume = 0.3;
+  if (musicPlaying) {
+    bgMusic.play().catch(e => console.log('Music play failed:', e));
+  }
+}
+
+function updateMusicToggle() {
+  musicToggle.textContent = musicPlaying ? '🔊' : '🔇';
+}
 
 function calculateCoins(score) {
   return Math.round(score / 50) * 50;
@@ -569,7 +632,6 @@ function endGame() {
   if (coins1 > coins2) winner = 'Player 1 Wins!';
   if (coins2 > coins1) winner = 'Player 2 Wins!';
   
-  // Add to leaderboard
   const entry = {
     winner: winner,
     score1: score1,
@@ -583,7 +645,6 @@ function endGame() {
   if (leaderboard.length > 10) leaderboard.pop();
   localStorage.setItem('nimble-leaderboard', JSON.stringify(leaderboard));
   
-  // Show result modal
   document.getElementById('resultTitle').textContent = winner;
   document.getElementById('resultScore1').textContent = score1;
   document.getElementById('resultScore2').textContent = score2;
@@ -633,7 +694,6 @@ document.addEventListener('keydown', (e) => {
   const key = e.key.toLowerCase();
   const activePlayerObj = players[activePlayer];
   
-  // Both A/D and arrow keys work for the active player
   if (['a', 'd', 'arrowleft', 'arrowright'].includes(key)) {
     activePlayerObj.keys[key] = true;
     e.preventDefault();
@@ -652,11 +712,9 @@ document.addEventListener('keyup', (e) => {
 function updatePlayer(playerIdx, canvas, ctx, obstacles, particles) {
   const player = players[playerIdx];
   
-  // Clear canvas
   ctx.fillStyle = colors.bg;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   
-  // Move player
   if (playerIdx === 0) {
     if (player.keys['a'] || player.keys['arrowleft']) {
       player.x = Math.max(0, player.x - player.speed);
@@ -673,11 +731,9 @@ function updatePlayer(playerIdx, canvas, ctx, obstacles, particles) {
     }
   }
   
-  // Draw player
   ctx.fillStyle = player.color;
   ctx.fillRect(player.x, player.y, player.width, player.height);
   
-  // Spawn obstacles
   if (Math.random() < 0.02 + gameSpeed * 0.003) {
     const isBonus = Math.random() < 0.15;
     obstacles.push({
@@ -690,16 +746,13 @@ function updatePlayer(playerIdx, canvas, ctx, obstacles, particles) {
     });
   }
   
-  // Update obstacles
   for (let i = obstacles.length - 1; i >= 0; i--) {
     const obs = obstacles[i];
     obs.y += obs.speed;
     
-    // Draw obstacle
     ctx.fillStyle = obs.isBonus ? colors.bonus : colors.obstacle;
     ctx.fillRect(obs.x, obs.y, obs.width, obs.height);
     
-    // Check collision
     if (
       player.x < obs.x + obs.width &&
       player.x + player.width > obs.x &&
@@ -738,7 +791,6 @@ function updatePlayer(playerIdx, canvas, ctx, obstacles, particles) {
     }
   }
   
-  // Update particles
   for (let i = particles.length - 1; i >= 0; i--) {
     const p = particles[i];
     p.life--;
@@ -776,7 +828,7 @@ function update() {
   requestAnimationFrame(update);
 }
 
-// Initialize leaderboard on page load
+initMusic();
 updateLeaderboard();
 </script>
 

@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html>
 <head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body { font-family: var(--font-sans); background: transparent; }
@@ -56,6 +58,30 @@ button:active {
   transform: scale(0.98);
 }
 
+.music-toggle {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 100;
+  background: var(--color-background-primary);
+  border: 0.5px solid var(--color-border-secondary);
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  padding: 0;
+  font-size: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.music-toggle:hover {
+  background: var(--color-background-secondary);
+  border-color: var(--color-border-primary);
+}
+
 .stats {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -99,9 +125,25 @@ button:active {
 }
 
 .info p { margin-bottom: 8px; }
+
+@media (max-width: 768px) {
+  .music-toggle {
+    top: 10px;
+    right: 10px;
+    width: 45px;
+    height: 45px;
+    font-size: 20px;
+  }
+}
 </style>
 </head>
 <body>
+
+<button class="music-toggle" id="musicToggle" onclick="toggleMusic()" title="Toggle Music">🔊</button>
+
+<audio id="bgMusic" loop>
+  <source src="Square%20Dodge.mp3" type="audio/mpeg">
+</audio>
 
 <div class="container">
   <div class="header">
@@ -143,11 +185,15 @@ const scoreDisplay = document.getElementById('score');
 const bestDisplay = document.getElementById('best');
 const startBtn = document.getElementById('startBtn');
 const pauseBtn = document.getElementById('pauseBtn');
+const bgMusic = document.getElementById('bgMusic');
+const musicToggle = document.getElementById('musicToggle');
 
 let gameRunning = false;
 let gamePaused = false;
 let score = 0;
 let bestScore = localStorage.getItem('nimble-best') || 0;
+let musicPlaying = localStorage.getItem('nimble-music-single') === 'true';
+
 bestDisplay.textContent = bestScore;
 
 const player = {
@@ -169,6 +215,30 @@ const colors = {
   bonus: '#FBBF24',
   bg: '#F3F4F6'
 };
+
+function toggleMusic() {
+  musicPlaying = !musicPlaying;
+  localStorage.setItem('nimble-music-single', musicPlaying);
+  if (musicPlaying) {
+    bgMusic.play().catch(e => console.log('Music play failed:', e));
+    musicToggle.textContent = '🔊';
+  } else {
+    bgMusic.pause();
+    musicToggle.textContent = '🔇';
+  }
+}
+
+function initMusic() {
+  updateMusicToggle();
+  bgMusic.volume = 0.3;
+  if (musicPlaying) {
+    bgMusic.play().catch(e => console.log('Music play failed:', e));
+  }
+}
+
+function updateMusicToggle() {
+  musicToggle.textContent = musicPlaying ? '🔊' : '🔇';
+}
 
 function startGame() {
   gameRunning = true;
@@ -220,7 +290,6 @@ function update() {
   ctx.fillStyle = colors.bg;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  // Move player
   if (player.keys['arrowleft'] || player.keys['a']) {
     player.x = Math.max(0, player.x - player.speed);
   }
@@ -228,11 +297,9 @@ function update() {
     player.x = Math.min(canvas.width - player.width, player.x + player.speed);
   }
 
-  // Draw player
   ctx.fillStyle = colors.player;
   ctx.fillRect(player.x, player.y, player.width, player.height);
 
-  // Spawn obstacles
   if (Math.random() < 0.02 + gameSpeed * 0.003) {
     const isBonus = Math.random() < 0.15;
     obstacles.push({
@@ -245,16 +312,13 @@ function update() {
     });
   }
 
-  // Update obstacles
   for (let i = obstacles.length - 1; i >= 0; i--) {
     const obs = obstacles[i];
     obs.y += obs.speed;
 
-    // Draw obstacle
     ctx.fillStyle = obs.isBonus ? colors.bonus : colors.obstacle;
     ctx.fillRect(obs.x, obs.y, obs.width, obs.height);
 
-    // Check collision
     if (
       player.x < obs.x + obs.width &&
       player.x + player.width > obs.x &&
@@ -277,7 +341,6 @@ function update() {
     }
   }
 
-  // Update particles
   for (let i = particles.length - 1; i >= 0; i--) {
     const p = particles[i];
     p.life--;
@@ -307,6 +370,8 @@ function createParticles(x, y, color) {
     });
   }
 }
+
+initMusic();
 </script>
 
 </body>
